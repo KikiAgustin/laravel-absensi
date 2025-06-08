@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import SubmitAttendance from "@/Components/Attendance/SubmitAttendance";
+import Attendance from "@/Components/Attendance/Attendance";
 import { Head } from "@inertiajs/react";
 
 export default function Dashboard() {
@@ -22,7 +22,7 @@ export default function Dashboard() {
                     </div>
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900">
-                            <SubmitAttendance />
+                            <Attendance />
                         </div>
                     </div>
                 </div>

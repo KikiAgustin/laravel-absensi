@@ -46,4 +46,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // catatan contoh untuk relasi tabel
+    // public function attendances(){
+    //     return $this->hasMany(Attendance::class);
+    // }
+
 }

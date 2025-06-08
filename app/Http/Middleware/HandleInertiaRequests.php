@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use App\Http\Controllers\AttendanceController;
+
 
 class HandleInertiaRequests extends Middleware
 {
@@ -34,6 +36,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'submitted' => AttendanceController::isTodayAttendanceSubmitted(),
         ];
     }
 }

@@ -1,15 +1,23 @@
 import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import { useState, useEffect } from "react";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import { Transition } from "@headlessui/react";
 
+import { Loader } from "@googlemaps/js-api-loader";
+
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import InputError from "@/Components/InputError";
 import PrimaryButton from "@/Components/PrimaryButton";
 import Selecbox from "@/Components/Selectbox";
-import { Transition } from "@headlessui/react";
 
 function SubmitAttendance() {
+    const loader = new Loader({
+        apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        version: "weekly",
+        libraries: ["geocoding"],
+    });
+
     const [transitioning, setTransitioning] = useState(false);
 
     const {
@@ -26,20 +34,15 @@ function SubmitAttendance() {
         latitude: "",
         longitude: "",
         prepareData: {},
+        address: "",
     });
 
-    const submit = (e) => {
+    const getLatLing = (e) => {
         e.preventDefault();
 
         navigator.geolocation.getCurrentPosition(
             function (position) {
-                console.log("Latitude is :", position.coords.latitude);
-                console.log("Longitude is :", position.coords.longitude);
-
-                setData("prepareData", {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude,
-                });
+                createGeocoder(position.coords);
             },
             function (error) {
                 alert("Tidak bisa mendapatkan lokasi");
@@ -47,17 +50,39 @@ function SubmitAttendance() {
         );
     };
 
-    useEffect(() => {
-        transform((data) => ({
-            ...data.prepareData,
-            status: data.status,
-            description: data.description,
-        }));
+    function createGeocoder(coordinates) {
+        loader.load().then(() => {
+            const geocoder = new google.maps.Geocoder();
 
-        if (
-            data.prepareData.hasOwnProperty("latitude") &&
-            data.prepareData.hasOwnProperty("longitude")
-        ) {
+            geocoder
+                .geocode({
+                    location: {
+                        lat: coordinates.latitude,
+                        lng: coordinates.longitude,
+                    },
+                })
+                .then((response) => {
+                    if (!response.results[0]) {
+                        alert("Tidak bisa mendapatkan lokasi");
+                        return;
+                    }
+                    setData("prepareData", {
+                        latitude: coordinates.latitude,
+                        longitude: coordinates.longitude,
+                        address: response.results[0].formatted_address,
+                    });
+                });
+        });
+    }
+
+    useEffect(() => {
+        if (data.prepareData.hasOwnProperty("address")) {
+            transform((data) => ({
+                ...data.prepareData,
+                status: data.status,
+                description: data.description,
+            }));
+
             post(route("attendances.submit"), {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -79,7 +104,7 @@ function SubmitAttendance() {
     }, [data.status]);
 
     return (
-        <form onSubmit={submit} className="mt-6 space-y-6">
+        <form onSubmit={getLatLing} className="mt-6 space-y-6">
             <div>
                 <InputLabel htmlFor="status" value="Silahkan lakukan absensi" />
                 <Selecbox
