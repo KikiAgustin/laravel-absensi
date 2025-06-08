@@ -11,14 +11,22 @@ import { Transition } from "@headlessui/react";
 import roles from "@/data/role.json";
 
 function Create({ auth, users }) {
-    const { data, setData, post, errors, processing, recentlySuccessful } =
-        useForm({
-            name: "",
-            email: "",
-            password: "",
-            password_confirmation: "",
-            role: "user",
-        });
+    const {
+        data,
+        setData,
+        post,
+        reset,
+        errors,
+        processing,
+        recentlySuccessful,
+    } = useForm({
+        uid: "",
+        name: "",
+        email: "",
+        password: "",
+        password_confirmation: "",
+        role: "user",
+    });
 
     const submit = (e) => {
         e.preventDefault();
@@ -33,6 +41,16 @@ function Create({ auth, users }) {
             },
         });
     };
+
+    window.Echo.channel("read-rfid-channel").listen("ReadRfidEvent", (e) => {
+        if (e.code == "EXISTS") {
+            errors.uid = e.message;
+            reset("uid");
+        } else {
+            (errors.uid = ""), reset("uid");
+            setData("uid", e.uid);
+        }
+    });
 
     return (
         <AuthenticatedLayout
@@ -53,6 +71,22 @@ function Create({ auth, users }) {
                                 </h2>
                             </header>
                             <form onSubmit={submit} className="mt-6 space-y-6">
+                                <div>
+                                    <InputLabel htmlFor="uid" value="RFID" />
+                                    <TextInput
+                                        id="uid"
+                                        className="mt-1 block w-full"
+                                        value={data.uid}
+                                        onChange={(e) =>
+                                            setData("uid", e.target.value)
+                                        }
+                                    />
+                                    <InputError
+                                        className="mt-2"
+                                        message={errors.uid}
+                                    />
+                                </div>
+
                                 <div>
                                     <InputLabel htmlFor="name" value="Name" />
                                     <TextInput

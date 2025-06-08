@@ -25,7 +25,8 @@ class UserController extends Controller
             'name' => 'required',
             'email'=> 'required|email|unique:users,email',
             'password' => 'required|min:8',
-            'password_confirmation' => 'required|same:password'
+            'password_confirmation' => 'required|same:password',
+            'uid' => 'nullable|unique:users,uid',
         ]);
 
         User::create($request->all());
@@ -43,7 +44,8 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users,email,'.$user->id,
             'password' => 'nullable|minn:8',
-            'password_confirmation' => 'nullable|same:password'
+            'password_confirmation' => 'nullable|same:password',
+            'uid' => 'nullable|unique:users,uid,'.$user->id,
         ]);
 
         $user->update([
@@ -51,6 +53,7 @@ class UserController extends Controller
             'email' => $request->email,
             'role' => $request->role,
             'password' => $request->password ? bcrypt($request->password) : $user->password,
+            'uid' => $request->uid,
         ]);
 
         return redirect()->route('users');
